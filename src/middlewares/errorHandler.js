@@ -8,15 +8,11 @@ const config = require('../config/config');
 const errorHandler = (err, req, res, next) => {
   let { statusCode, message } = err;
 
-  // Log error for debugging
   if (config.NODE_ENV === 'development') {
-    console.error('🐛 Error Details:', {
+    console.error('Error:', {
       message: err.message,
-      stack: err.stack,
       url: req.originalUrl,
       method: req.method,
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
     });
   }
 

@@ -16,36 +16,26 @@ class Database {
       };
 
       this.connection = await mongoose.connect(config.MONGODB_URI, options);
-      
-      console.log(`✅ MongoDB connected successfully to: ${this.connection.connection.host}`);
-      
-      // Handle connection events
+      console.log(`MongoDB connected successfully to: ${this.connection.connection.host}`);
+
       mongoose.connection.on('error', (err) => {
-        console.error('❌ MongoDB connection error:', err);
+        console.error('MongoDB connection error:', err);
       });
-      
+
       mongoose.connection.on('disconnected', () => {
-        console.warn('⚠️  MongoDB disconnected. Attempting to reconnect...');
+        console.warn('MongoDB disconnected. Attempting to reconnect...');
       });
-      
+
       mongoose.connection.on('reconnected', () => {
-        console.log('✅ MongoDB reconnected successfully');
+        console.log('MongoDB reconnected successfully');
       });
-      
+
       // Handle process termination
       process.on('SIGINT', this.close.bind(this));
       process.on('SIGTERM', this.close.bind(this));
-      
+
     } catch (error) {
-      console.error('❌ MongoDB connection failed:', error.message);
-      console.log('\n🔧 Setup Instructions:');
-      console.log('1. Install MongoDB: https://www.mongodb.com/try/download/community');
-      console.log('2. Start MongoDB service:');
-      console.log('   - Windows: net start MongoDB');
-      console.log('   - macOS: brew services start mongodb/brew/mongodb-community');
-      console.log('   - Linux: sudo systemctl start mongod');
-      console.log('3. Or use MongoDB Atlas (cloud): https://www.mongodb.com/atlas');
-      console.log('4. Update MONGODB_URI in .env file with your connection string\n');
+      console.error('MongoDB connection failed:', error.message);
       process.exit(1);
     }
   }

@@ -49,29 +49,14 @@ router.get('/', (req, res) => {
     {
       api: 'Bookstore API',
       version: '1.0.0',
-      description: 'A production-ready RESTful API for managing a bookstore',
-      documentation: {
-        endpoints: {
-          books: '/api/books',
-          health: '/api/health',
-          docs: '/api-docs',
-        },
-        features: [
-          'CRUD operations for books',
-          'Advanced filtering and search',
-          'Pagination and sorting',
-          'Input validation',
-          'Rate limiting',
-          'Error handling',
-          'Security middlewares',
-        ],
-      },
-      contact: {
-        email: 'contact@bookstore-api.com',
-        documentation: 'https://api-docs.bookstore-api.com',
+      description: 'RESTful API for managing a bookstore',
+      endpoints: {
+        books: '/api/books',
+        health: '/api/health',
+        docs: '/api-docs',
       },
     },
-    'Welcome to the Bookstore API'
+    'Bookstore API'
   ).send(res);
 });
 
