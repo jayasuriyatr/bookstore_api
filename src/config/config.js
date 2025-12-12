@@ -12,7 +12,7 @@ const config = {
   },
 
   CORS: {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: process.env.CORS_ORIGIN || (config.NODE_ENV === 'development' ? 'http://localhost:3000' : false),
     credentials: true,
     optionsSuccessStatus: 200,
   },
@@ -25,7 +25,7 @@ const config = {
 };
 
 if (config.NODE_ENV === 'production') {
-  const required = ['MONGODB_URI'];
+  const required = ['MONGODB_URI', 'CORS_ORIGIN'];
   required.forEach((key) => {
     if (!process.env[key]) {
       console.error(`Missing required environment variable: ${key}`);

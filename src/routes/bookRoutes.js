@@ -1,12 +1,11 @@
 const express = require('express');
 const bookController = require('../controllers/bookController');
 const { validate, bookSchemas } = require('../middlewares/validation');
-const { standardRateLimiter } = require('../middlewares/security');
+const { standardRateLimiter, strictRateLimiter } = require('../middlewares/security');
 
 const router = express.Router();
 
-// Apply rate limiting to all book routes
-router.use(standardRateLimiter);
+// Rate limiting is now applied per route - standard for GET, strict for write operations
 
 // GET routes
 /**
@@ -72,7 +71,7 @@ router.get('/stats', bookController.getBookStats);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get('/count', bookController.getBookCount);
+router.get('/count', standardRateLimiter, bookController.getBookCount);
 
 /**
  * @swagger
@@ -103,7 +102,7 @@ router.get('/count', bookController.getBookCount);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get('/health', bookController.healthCheck);
+router.get('/health', standardRateLimiter, bookController.healthCheck);
 
 /**
  * @swagger
@@ -163,7 +162,8 @@ router.get('/health', bookController.healthCheck);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get('/search', 
+router.get('/search',
+  standardRateLimiter,
   validate(bookSchemas.getBooks, 'query'),
   bookController.searchBooks
 );
@@ -238,7 +238,8 @@ router.get('/search',
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get('/', 
+router.get('/',
+  standardRateLimiter,
   validate(bookSchemas.getBooks, 'query'),
   bookController.getAllBooks
 );
@@ -281,6 +282,7 @@ router.get('/',
  *         $ref: '#/components/responses/ServerError'
  */
 router.get('/genre/:genre',
+  standardRateLimiter,
   validate(bookSchemas.getBooks, 'query'),
   bookController.getBooksByGenre
 );
@@ -323,6 +325,7 @@ router.get('/genre/:genre',
  *         $ref: '#/components/responses/ServerError'
  */
 router.get('/author/:author',
+  standardRateLimiter,
   validate(bookSchemas.getBooks, 'query'),
   bookController.getBooksByAuthor
 );
@@ -362,7 +365,7 @@ router.get('/author/:author',
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get('/isbn/:isbn', bookController.getBookByIsbn);
+router.get('/isbn/:isbn', standardRateLimiter, bookController.getBookByIsbn);
 
 /**
  * @swagger
@@ -428,6 +431,7 @@ router.head('/isbn/:isbn', bookController.checkBookExists);
  *         $ref: '#/components/responses/ServerError'
  */
 router.get('/:id',
+  standardRateLimiter,
   validate(bookSchemas.bookId, 'params'),
   bookController.getBookById
 );
@@ -482,6 +486,7 @@ router.get('/:id',
  *         $ref: '#/components/responses/ServerError'
  */
 router.post('/',
+  strictRateLimiter,
   validate(bookSchemas.createBook, 'body'),
   bookController.createBook
 );
@@ -536,6 +541,7 @@ router.post('/',
  *         $ref: '#/components/responses/ServerError'
  */
 router.put('/:id',
+  strictRateLimiter,
   validate(bookSchemas.bookId, 'params'),
   validate(bookSchemas.updateBook, 'body'),
   bookController.updateBook
@@ -588,6 +594,7 @@ router.put('/:id',
  *         $ref: '#/components/responses/ServerError'
  */
 router.patch('/:id',
+  strictRateLimiter,
   validate(bookSchemas.bookId, 'params'),
   validate(bookSchemas.updateBook, 'body'),
   bookController.patchBook
@@ -653,6 +660,7 @@ router.patch('/:id',
  *         $ref: '#/components/responses/ServerError'
  */
 router.patch('/:id/stock',
+  strictRateLimiter,
   validate(bookSchemas.bookId, 'params'),
   validate(
     require('joi').object({
@@ -705,6 +713,7 @@ router.patch('/:id/stock',
  *         $ref: '#/components/responses/ServerError'
  */
 router.delete('/:id',
+  strictRateLimiter,
   validate(bookSchemas.bookId, 'params'),
   bookController.deleteBook
 );
@@ -742,6 +751,7 @@ router.delete('/:id',
  *         $ref: '#/components/responses/ServerError'
  */
 router.delete('/:id/permanent',
+  strictRateLimiter,
   validate(bookSchemas.bookId, 'params'),
   bookController.permanentlyDeleteBook
 );

@@ -33,12 +33,12 @@ app.use(compressionConfig);
 app.use(morganConfig());
 
 app.use(express.json({
-  limit: '10mb',
+  limit: '1mb',
   strict: true,
 }));
 app.use(express.urlencoded({
   extended: true,
-  limit: '10mb',
+  limit: '1mb',
 }));
 app.use(sanitizeRequest);
 
