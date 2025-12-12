@@ -22,10 +22,16 @@ const config = {
     DEFAULT_LIMIT: 10,
     MAX_LIMIT: 100,
   },
+
+  JWT: {
+    secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+  },
 };
 
 if (config.NODE_ENV === 'production') {
-  const required = ['MONGODB_URI', 'CORS_ORIGIN'];
+  const required = ['MONGODB_URI', 'CORS_ORIGIN', 'JWT_SECRET'];
   required.forEach((key) => {
     if (!process.env[key]) {
       console.error(`Missing required environment variable: ${key}`);

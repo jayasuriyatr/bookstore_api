@@ -1,147 +1,193 @@
 # Bookstore API
 
-A fully production-ready, secure, RESTful API for managing a bookstore built with Express.js and MongoDB.
+A RESTful API for managing a bookstore built with Express.js and MongoDB. This system provides comprehensive book management capabilities with JWT authentication, role-based access control, and advanced search functionality.
 
 ## Features
 
-- 🚀 **Production-ready architecture** with scalable folder structure
-- 🔒 **Security-first approach** with Helmet, CORS, rate limiting, and input sanitization
-- 🔍 **Advanced search and filtering** with pagination and sorting
-- ✅ **Comprehensive validation** using Joi schemas
-- 🗄️ **MongoDB integration** with Mongoose ODM
-- 📝 **Detailed logging** with Morgan
-- 🛡️ **Error handling** with global error handler and custom ApiError
-- 🔄 **Consistent API responses** with ApiResponse utility
-- 📊 **Book statistics and analytics**
-- 🎯 **RESTful endpoints** following best practices
+- Complete CRUD operations for book management
+- JWT-based authentication and authorization
+- Role-based access control (Admin/User)
+- Advanced search and filtering with pagination
+- Input validation using Joi schemas
+- MongoDB integration with Mongoose ODM
+- Request rate limiting and security middlewares
+- Comprehensive error handling
+- API documentation with Swagger
+- Statistics and analytics endpoints
 
-## Quick Start
+## Installation
 
 ### Prerequisites
 
 - Node.js (>= 16.0.0)
 - MongoDB (>= 4.4)
-- npm or yarn
+- pnpm (recommended) or npm
 
-### Installation
+### Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd bookstore-api
    ```
 
 2. **Install dependencies**
+
    ```bash
-   npm install
+   pnpm install
    ```
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit the `.env` file with your configuration:
+3. **Environment Configuration**
+
+   Create a `.env` file in the root directory:
+
    ```env
    NODE_ENV=development
    PORT=5000
    MONGODB_URI=mongodb://localhost:27017/bookstore
+
+   # JWT Configuration
+   JWT_SECRET=your-super-secret-jwt-key-change-in-production
+   JWT_EXPIRES_IN=7d
+   JWT_REFRESH_EXPIRES_IN=30d
+
+   # Rate Limiting
    RATE_LIMIT_WINDOW_MS=900000
    RATE_LIMIT_MAX_REQUESTS=100
-   CORS_ORIGIN=*
+
+   # CORS Configuration
+   CORS_ORIGIN=http://localhost:3000
    ```
 
 4. **Start MongoDB**
-   Make sure MongoDB is running on your system.
+   Ensure MongoDB is running on your system.
 
 5. **Run the application**
-   
-   **Development mode:**
+
+   Development mode:
+
    ```bash
-   npm run dev
-   ```
-   
-   **Production mode:**
-   ```bash
-   npm start
+   pnpm dev
    ```
 
-6. **Test the API**
+   Production mode:
+
+   ```bash
+   pnpm start
+   ```
+
+6. **Verify installation**
    ```bash
    curl http://localhost:5000/ping
    ```
 
 ## API Documentation
 
-### Interactive API Documentation
-🚀 **Swagger UI** - Complete interactive API documentation is available at:
+### Interactive Documentation
+
+Complete interactive API documentation is available at:
+
 ```
 http://localhost:5000/api-docs
 ```
 
-The Swagger documentation provides:
-- **Interactive Testing**: Test all endpoints directly from the browser
-- **Request/Response Examples**: See sample requests and responses for each endpoint
-- **Schema Definitions**: Complete data models and validation rules
-- **Parameter Documentation**: Detailed information about all query parameters, path parameters, and request bodies
-- **Response Codes**: All possible HTTP status codes and their meanings
-
 ### Base URL
+
 ```
 http://localhost:5000/api
 ```
 
 ### Authentication
-Currently, the API does not require authentication. All endpoints are public.
+
+The API uses JWT (JSON Web Token) based authentication with role-based access control.
+
+#### Authentication Flow
+
+1. Register a new user or login with existing credentials
+2. Receive JWT access token and refresh token
+3. Include access token in Authorization header for protected endpoints
+4. Use refresh token to obtain new access tokens when they expire
+
+#### Token Types
+
+- **Access Token**: Short-lived (7 days), used for API requests
+- **Refresh Token**: Long-lived (30 days), used to refresh access tokens
+
+#### Authorization Header Format
+
+```
+Authorization: Bearer <access_token>
+```
+
+#### User Roles
+
+- **User**: Can read books and manage own profile
+- **Admin**: Full access to all operations including book management
 
 ### API Endpoints
 
 #### Health & Info
+
 - `GET /ping` - Simple health check
 - `GET /api` - API information
 - `GET /api/health` - Detailed health check
-- `GET /api/books/health` - Books service health check
 
-#### Books Management
+#### Authentication (Public)
 
-##### Get Books
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `POST /api/auth/refresh` - Refresh access token
+
+#### User Management (Authenticated)
+
+- `GET /api/auth/profile` - Get current user profile
+- `PUT /api/auth/profile` - Update user profile
+- `POST /api/auth/change-password` - Change user password
+
+#### Admin Only
+
+- `GET /api/auth/users` - Get all users (Admin only)
+
+#### Books (Public Read, Admin Write)
+
+##### Read Operations (Public)
+
 - `GET /api/books` - Get all books with filtering, searching, and pagination
 - `GET /api/books/:id` - Get book by ID
 - `GET /api/books/isbn/:isbn` - Get book by ISBN
 - `GET /api/books/genre/:genre` - Get books by genre
 - `GET /api/books/author/:author` - Get books by author
-- `GET /api/books/search?q=term` - Search books
-- `GET /api/books/count` - Get total book count
 - `GET /api/books/stats` - Get book statistics
 
-##### Create/Update Books
+##### Write Operations (Admin Only)
+
 - `POST /api/books` - Create a new book
 - `PUT /api/books/:id` - Update book (complete update)
 - `PATCH /api/books/:id` - Update book (partial update)
 - `PATCH /api/books/:id/stock` - Update book stock
-
-##### Delete Books
-- `DELETE /api/books/:id` - Delete book (soft delete - changes status to 'discontinued')
+- `DELETE /api/books/:id` - Delete book (soft delete)
 - `DELETE /api/books/:id/permanent` - Permanently delete book
 
 #### Query Parameters for GET /api/books
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `page` | Page number (default: 1) | `?page=2` |
-| `limit` | Items per page (default: 10, max: 100) | `?limit=20` |
-| `search` | Search in title, author, description | `?search=javascript` |
-| `genre` | Filter by genre | `?genre=Fiction` |
-| `author` | Filter by author | `?author=John Doe` |
-| `publishedYear` | Filter by exact year | `?publishedYear=2023` |
-| `publishedYear_gte` | Filter by year (from) | `?publishedYear_gte=2020` |
-| `publishedYear_lte` | Filter by year (to) | `?publishedYear_lte=2023` |
-| `price_gte` | Filter by minimum price | `?price_gte=10` |
-| `price_lte` | Filter by maximum price | `?price_lte=50` |
-| `status` | Filter by status (active, inactive, discontinued) | `?status=active` |
-| `sort` | Sort fields (prefix with - for desc) | `?sort=-createdAt,title` |
+| Parameter           | Description                                       | Example                   |
+| ------------------- | ------------------------------------------------- | ------------------------- |
+| `page`              | Page number (default: 1)                          | `?page=2`                 |
+| `limit`             | Items per page (default: 10, max: 100)            | `?limit=20`               |
+| `search`            | Search in title, author, description              | `?search=javascript`      |
+| `genre`             | Filter by genre                                   | `?genre=Fiction`          |
+| `author`            | Filter by author                                  | `?author=John Doe`        |
+| `publishedYear`     | Filter by exact year                              | `?publishedYear=2023`     |
+| `publishedYear_gte` | Filter by year (from)                             | `?publishedYear_gte=2020` |
+| `publishedYear_lte` | Filter by year (to)                               | `?publishedYear_lte=2023` |
+| `price_gte`         | Filter by minimum price                           | `?price_gte=10`           |
+| `price_lte`         | Filter by maximum price                           | `?price_lte=50`           |
+| `status`            | Filter by status (active, inactive, discontinued) | `?status=active`          |
+| `sort`              | Sort fields (prefix with - for desc)              | `?sort=-createdAt,title`  |
 
 ##### Sorting Options
+
 - `title` - Sort by title
 - `author` - Sort by author
 - `genre` - Sort by genre
@@ -150,7 +196,24 @@ Currently, the API does not require authentication. All endpoints are public.
 - `createdAt` - Sort by creation date
 - `updatedAt` - Sort by last update
 
-### Book Schema
+### Data Schemas
+
+#### User Schema
+
+```json
+{
+  "username": "string (required, 3-50 chars, alphanumeric)",
+  "email": "string (required, valid email format)",
+  "password": "string (required, min 6 chars)",
+  "role": "string (user|admin, default: user)",
+  "isActive": "boolean (default: true)",
+  "lastLogin": "datetime",
+  "createdAt": "datetime (auto-generated)",
+  "updatedAt": "datetime (auto-generated)"
+}
+```
+
+#### Book Schema
 
 ```json
 {
@@ -169,6 +232,7 @@ Currently, the API does not require authentication. All endpoints are public.
 ```
 
 #### Valid Genres
+
 - Fiction
 - Non-Fiction
 - Mystery
@@ -191,10 +255,47 @@ Currently, the API does not require authentication. All endpoints are public.
 
 ### Example Requests
 
-#### Create a Book
+#### Authentication Examples
+
+##### Register New User
+
+```bash
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "john_doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "role": "user"
+  }'
+```
+
+##### User Login
+
+```bash
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "password123"
+  }'
+```
+
+##### Get User Profile
+
+```bash
+curl -X GET http://localhost:5000/api/auth/profile \
+  -H "Authorization: Bearer <access_token>"
+```
+
+#### Book Management Examples
+
+##### Create a Book (Admin Only)
+
 ```bash
 curl -X POST http://localhost:5000/api/books \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <admin_access_token>" \
   -d '{
     "title": "The Great Gatsby",
     "author": "F. Scott Fitzgerald",
@@ -207,20 +308,24 @@ curl -X POST http://localhost:5000/api/books \
   }'
 ```
 
-#### Get Books with Filters
+##### Get Books with Filters (Public)
+
 ```bash
 curl "http://localhost:5000/api/books?genre=Fiction&publishedYear_gte=1900&sort=-publishedYear&page=1&limit=10"
 ```
 
-#### Search Books
+##### Search Books (Public)
+
 ```bash
 curl "http://localhost:5000/api/books?search=gatsby&sort=title"
 ```
 
-#### Update Book Stock
+##### Update Book Stock (Admin Only)
+
 ```bash
 curl -X PATCH http://localhost:5000/api/books/507f1f77bcf86cd799439011/stock \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <admin_access_token>" \
   -d '{"quantity": -5}'
 ```
 
@@ -229,6 +334,7 @@ curl -X PATCH http://localhost:5000/api/books/507f1f77bcf86cd799439011/stock \
 All API responses follow a consistent format:
 
 #### Success Response
+
 ```json
 {
   "success": true,
@@ -251,6 +357,7 @@ All API responses follow a consistent format:
 ```
 
 #### Error Response
+
 ```json
 {
   "success": false,
@@ -266,16 +373,21 @@ bookstore-api/
 ├── src/
 │   ├── config/
 │   │   ├── config.js          # Application configuration
-│   │   └── database.js        # Database connection setup
+│   │   ├── database.js        # Database connection setup
+│   │   └── swagger.js         # API documentation config
 │   ├── controllers/
+│   │   ├── authController.js  # Authentication handlers
 │   │   └── bookController.js  # Book route handlers
 │   ├── middlewares/
+│   │   ├── auth.js           # JWT authentication middleware
 │   │   ├── errorHandler.js    # Global error handling
 │   │   ├── security.js        # Security middlewares
 │   │   └── validation.js      # Input validation schemas
 │   ├── models/
-│   │   └── Book.js           # Book Mongoose model
+│   │   ├── Book.js           # Book Mongoose model
+│   │   └── User.js           # User Mongoose model
 │   ├── routes/
+│   │   ├── authRoutes.js     # Authentication routes
 │   │   ├── bookRoutes.js     # Book API routes
 │   │   └── index.js          # General API routes
 │   ├── services/
@@ -283,110 +395,178 @@ bookstore-api/
 │   ├── utils/
 │   │   ├── ApiError.js       # Custom error class
 │   │   ├── ApiResponse.js    # Response formatting utility
-│   │   └── helpers.js        # Helper functions
+│   │   ├── helpers.js        # Helper functions
+│   │   └── jwt.js            # JWT utility functions
 │   └── app.js                # Express app setup
-├── .env.example              # Environment variables template
+├── .env                      # Environment variables
 ├── .gitignore               # Git ignore rules
 ├── package.json             # Project dependencies
-├── README.md               # This file
+├── README.md               # Documentation
 └── server.js               # Application entry point
 ```
 
-## Security Features
+## Security Implementation
 
-- **Helmet**: Security headers protection
-- **CORS**: Cross-Origin Resource Sharing configuration
-- **Rate Limiting**: API request rate limiting
-- **Input Validation**: Joi schema validation
+### Authentication & Authorization
+
+- **JWT Tokens**: Stateless authentication using JSON Web Tokens
+- **Password Hashing**: bcryptjs with salt rounds for secure password storage
+- **Role-Based Access**: User and Admin role differentiation
+- **Token Expiration**: Configurable access and refresh token lifespans
+
+### Request Security
+
+- **Rate Limiting**: Different limits for read (100/15min) and write operations (5/15min)
+- **Helmet**: Security headers including CSP, HSTS, XSS protection
+- **CORS**: Cross-Origin Resource Sharing with configurable origins
+- **Input Validation**: Joi schema validation on all inputs
 - **Input Sanitization**: NoSQL injection prevention
-- **Error Handling**: Secure error responses
-- **Request Timeout**: Prevent hanging requests
+- **Request Timeout**: 30-second timeout to prevent hanging requests
+
+### Data Protection
+
+- **Password Exclusion**: Passwords never returned in API responses
+- **Token Validation**: Signature, expiry, and audience verification
+- **Error Sanitization**: Stack traces hidden in production
+- **Request Size Limits**: 1MB limit on request payloads
 
 ## Development
 
-### Scripts
+### Available Scripts
 
-- `npm start` - Start production server
-- `npm run dev` - Start development server with nodemon
-- `npm test` - Run tests (if implemented)
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Run ESLint with auto-fix
+- `pnpm start` - Start server
+- `pnpm dev` - Start development server with nodemon
+- `pnpm test` - Run tests (if implemented)
 
-### Code Style
+### Code Architecture
 
-The project follows these conventions:
-- ES6+ JavaScript features
-- Async/await for asynchronous operations
-- Modular architecture with clear separation of concerns
-- Comprehensive error handling
-- Input validation on all endpoints
-- Consistent naming conventions
+The application follows a modular architecture with clear separation of concerns:
 
-### Adding New Features
+- **Controllers**: Handle HTTP requests and responses
+- **Services**: Contain business logic and data operations
+- **Models**: Define data structures and validation rules
+- **Middlewares**: Handle cross-cutting concerns (auth, validation, security)
+- **Routes**: Define API endpoints and their handlers
+- **Utils**: Contain helper functions and utilities
 
-1. **Models**: Add new Mongoose models in `src/models/`
-2. **Services**: Add business logic in `src/services/`
-3. **Controllers**: Add route handlers in `src/controllers/`
-4. **Routes**: Define new routes in `src/routes/`
-5. **Validation**: Add Joi schemas in `src/middlewares/validation.js`
+### Development Guidelines
 
-## Production Deployment
+- Use async/await for asynchronous operations
+- Implement comprehensive error handling
+- Validate all inputs using Joi schemas
+- Follow RESTful API conventions
+- Maintain consistent response formats
+- Write self-documenting code with clear naming
+
+## Deployment
 
 ### Environment Variables
 
-Set the following environment variables for production:
+Required environment variables for different environments:
+
+**Development:**
+
+```env
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/bookstore
+JWT_SECRET=dev-secret-key
+```
+
+**Production:**
 
 ```env
 NODE_ENV=production
 PORT=5000
-MONGODB_URI=mongodb://username:password@host:port/database
+MONGODB_URI=mongodb://username:password@cluster.mongodb.net/bookstore
+JWT_SECRET=your-strong-secret-key
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=30d
+CORS_ORIGIN=https://yourdomain.com
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
-CORS_ORIGIN=https://yourdomain.com
 ```
 
-### Performance Tips
+### Deployment Considerations
 
-- Use MongoDB indexes for better query performance
-- Enable compression for responses
-- Use process managers like PM2 for production
-- Implement caching for frequently accessed data
-- Monitor application performance and errors
-- Use load balancing for high traffic
+- Use strong JWT secrets in production
+- Configure proper CORS origins
+- Set up MongoDB with authentication
+- Implement proper logging and monitoring
+- Use HTTPS for all communications
+- Consider using a reverse proxy (nginx)
+- Implement proper backup strategies
 
-### Monitoring
+## API Rate Limits
 
-The API provides several endpoints for monitoring:
-- `/ping` - Basic health check
-- `/api/health` - Detailed health information
-- `/api/books/health` - Service-specific health check
-- `/api/books/stats` - Application statistics
+| Endpoint Type            | Rate Limit   | Window     |
+| ------------------------ | ------------ | ---------- |
+| Authentication endpoints | 5 requests   | 15 minutes |
+| Read operations          | 100 requests | 15 minutes |
+| Write operations (Admin) | 5 requests   | 15 minutes |
+
+## Error Handling
+
+The API returns consistent error responses with appropriate HTTP status codes:
+
+### Error Response Format
+
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "timestamp": "2025-12-12T10:30:00.000Z"
+}
+```
+
+### Common HTTP Status Codes
+
+- `200` - Success
+- `201` - Created
+- `400` - Bad Request (validation errors)
+- `401` - Unauthorized (authentication required)
+- `403` - Forbidden (insufficient permissions)
+- `404` - Not Found
+- `409` - Conflict (duplicate data)
+- `422` - Unprocessable Entity (validation failed)
+- `429` - Too Many Requests (rate limit exceeded)
+- `500` - Internal Server Error
+
+## Testing
+
+### Manual Testing
+
+Use the provided curl examples or tools like Postman to test the API endpoints.
+
+### Automated Testing
+
+The project structure supports adding automated tests using Jest or similar testing frameworks.
+
+## Monitoring
+
+Health check endpoints for monitoring system status:
+
+- `GET /ping` - Basic connectivity check
+- `GET /api/health` - Detailed system health
+- `GET /api/books/stats` - Application statistics
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes with appropriate tests
+4. Submit a pull request with a clear description
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is available under the MIT License.
 
-## Support
+## Version History
 
-For support and questions:
-- Email: contact@bookstore-api.com
-- Documentation: https://api-docs.bookstore-api.com
-- Issues: https://github.com/your-repo/bookstore-api/issues
+### Version 1.0.0
 
-## Changelog
-
-### Version 1.0.0 (2023-12-12)
-- Initial release
-- Complete CRUD operations for books
-- Advanced search and filtering
-- Security middlewares
-- Production-ready architecture
-- Comprehensive documentation
+- Initial implementation
+- Book management CRUD operations
+- JWT authentication system
+- Role-based authorization
+- Rate limiting and security features
+- Comprehensive API documentation

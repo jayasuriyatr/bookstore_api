@@ -21,6 +21,7 @@ const {
 
 const apiRoutes = require('./routes/index');
 const bookRoutes = require('./routes/bookRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -62,6 +63,7 @@ app.get('/', (req, res) => {
 
 app.use('/api', apiRoutes);
 app.use('/api/books', bookRoutes);
+app.use('/api/auth', authRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

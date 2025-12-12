@@ -2,6 +2,7 @@ const express = require('express');
 const bookController = require('../controllers/bookController');
 const { validate, bookSchemas } = require('../middlewares/validation');
 const { standardRateLimiter, strictRateLimiter } = require('../middlewares/security');
+const { authenticate, authorize, optionalAuthenticate } = require('../middlewares/auth');
 
 const router = express.Router();
 
@@ -487,6 +488,8 @@ router.get('/:id',
  */
 router.post('/',
   strictRateLimiter,
+  authenticate,
+  authorize('admin'),
   validate(bookSchemas.createBook, 'body'),
   bookController.createBook
 );
@@ -542,6 +545,8 @@ router.post('/',
  */
 router.put('/:id',
   strictRateLimiter,
+  authenticate,
+  authorize('admin'),
   validate(bookSchemas.bookId, 'params'),
   validate(bookSchemas.updateBook, 'body'),
   bookController.updateBook
@@ -595,6 +600,8 @@ router.put('/:id',
  */
 router.patch('/:id',
   strictRateLimiter,
+  authenticate,
+  authorize('admin'),
   validate(bookSchemas.bookId, 'params'),
   validate(bookSchemas.updateBook, 'body'),
   bookController.patchBook
@@ -661,6 +668,8 @@ router.patch('/:id',
  */
 router.patch('/:id/stock',
   strictRateLimiter,
+  authenticate,
+  authorize('admin'),
   validate(bookSchemas.bookId, 'params'),
   validate(
     require('joi').object({
@@ -714,6 +723,8 @@ router.patch('/:id/stock',
  */
 router.delete('/:id',
   strictRateLimiter,
+  authenticate,
+  authorize('admin'),
   validate(bookSchemas.bookId, 'params'),
   bookController.deleteBook
 );
@@ -752,6 +763,8 @@ router.delete('/:id',
  */
 router.delete('/:id/permanent',
   strictRateLimiter,
+  authenticate,
+  authorize('admin'),
   validate(bookSchemas.bookId, 'params'),
   bookController.permanentlyDeleteBook
 );
